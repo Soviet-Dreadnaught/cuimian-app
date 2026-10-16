@@ -1,86 +1,42 @@
-# HypnoHeart · 催眠爱心
+# 催眠APP - HypnoApp
 
-A ridiculously tiny Android app that renders the classic **"hypnosis heart"** visual — concentric pink/white heart stripes that keep expanding outward and fill the whole screen. Purely decorative: no sound, no permissions, no network, no effect whatsoever on the viewer.
-
-一个「催眠爱心」视觉小玩具：粉白相间的爱心条纹从中心不断向外扩张、铺满整个屏幕，锁竖屏、不旋转。
-纯视觉装饰，不发声、不联网、无任何权限，**对观看者没有任何实际作用**。
 
 ![preview](docs/preview.gif)
 
-<p align="center">
-  <img src="docs/screenshot-portrait.png" width="320" alt="portrait screenshot">
-</p>
 
-## 特点 / Highlights
 
-- **12 KB APK** — single Java file, no resources, no third-party dependencies, no Gradle.
-- **Portrait-locked, full-screen, keep-screen-on** — walks whatever screen it lands on.
-- **GPU-generated per pixel** — the whole pattern is a fragment shader; the CPU idles at a few percent.
-- **Sharp at any resolution** — anti-aliased analytically, no bitmaps, no texture upscaling.
-- **Seamless loop** — the color period is exactly 2 stripes, so the outward flow never jumps.
+## 我是催眠APP的开发者！你们知道催眠APP吗？
 
-## 效果参数 / Parameters
+嘿嘿……当你们打开这个APP的那一刻，一切都在你的掌控之中！
 
-All in `HypnoRenderer` (`src/com/hypno/heart/MainActivity.java`):
+这个催眠APP，是能把任何女生直接操成专属~肉便器~的神器！~清纯系女大学生、高冷傲娇大小姐、女老师、女主播、街上的路人甲……~全部都能随心所欲地玩弄。
 
-| Constant | Value | Meaning |
-|---|---|---|
-| `BANDS` | `15` | stripes per unit radius |
-| `FLOW` | `1.6f` | outward speed in stripes/second (one visual cycle = 1.25 s) |
-| `R_RATIO` | `0.97f` | unit radius ÷ screen short side (>1 → the heart is bigger than the screen, stripes reach the edges) |
-| colors | `#FFFFFF` / `#FF5FA2` | white / pink |
+催眠成功后，眼睛变直、抵抗全消，~胸部被我揉得变形，嘴巴被我塞满，然后直接正常位中出！想干她干啥干啥！~
 
-## 怎么实现的 / How it works
+## 主要功能
 
-Every pixel is converted into a "heart-space" radius `d = |p| / ρ(θ)`, then colored by `parity(floor(d·N − phase))`:
+- **真实催眠系统**：~催眠过程中女生眼睛慢慢变直、抵抗慢慢消失，成功后彻底变成只会叫我“主人”的肉玩具。~
+- **即时支配**：~催眠成功后可以随便玩她！揉奶、吸乳、口交、各种体位中出，随便操到她哭着求饶！~
+- **随意后宫**：~把催眠成功的女生们集中起来，让她们一起围着我侍奉。清纯的和傲娇的轮流给我打飞机、口交、骑乘位。~
 
-- `ρ(θ)` — the heart outline comes from the classic parametric curve
-  `x = 16sin³t`, `y = 13cos t − 5cos2t − 2cos3t − cos4t`,
-  re-centred on its area centroid, normalized to the unit circle, and baked into a **512×1 lookup table**
-  (`GL_LUMINANCE_ALPHA`, two channels = 16-bit precision, linearly filtered — 8-bit alone wobbles the stripe edges by ~5 px).
-- Anti-aliasing — the shader derives the phase change per pixel from `uN/(uR·ρ)` and smoothsteps a ~1 px transition,
-  so no `fwidth` / `GL_OES_standard_derivatives` is required (GLES 2.0 only).
-- `RENDERMODE_CONTINUOUSLY` on a `GLSurfaceView`; the LUT is rebuilt whenever the GL context is recreated.
+## 安装方法
 
-### 为什么不用 Canvas 画路径 / Why not just draw Paths
+1. 下载APK安装（必须允许未知来源）
+2. 打开App
+3. 点击「开始催眠」
+4. 选择女生
+5. 催眠成功后，随便玩弄她的身体！
 
-Drawing the pattern with `Canvas.drawPath` needs the heart scaled 4× beyond the screen, and a single path's
-device-space bounds reach ~5600 px. **Skia falls back to CPU rasterization for path masks above the atlas size limit
-(~2048 px)**, which pins a full core (measured 94–109% CPU at 60 fps). Tiling / even-odd / non-zero winding / stroking
-all fail the same way, because the cost follows the clipped mask area. Moving to a fragment shader dropped it to **~10%**
-(and most of that is the emulator's own compositor).
+## 注意事项
 
-## 构建 / Build
+- 催眠太猛了会把人操死的（笑）
+- 催眠成功后女生只会想我一个人的事
+- 纯属虚构，实际操作请自重
 
-```powershell
-pwsh -File .\build.ps1
-```
+MIT协议，自由使用、改造、玩弄都行！
 
-The script resolves the Android SDK from `ANDROID_HOME` / `ANDROID_SDK_ROOT`, or falls back to a `D:\xq-sdk`-style
-layout; it needs **build-tools 34.0.0** (or 35.x), **platform android-34**, and a **JDK 17** on `JAVA_HOME`.
-It runs `javac → d8 → aapt2 link → aapt add → zipalign → apksigner` and signs with a local debug keystore it creates
-on first run. No Gradle, no Android Studio, no network.
+喜欢这个催眠APP吗？快来试试把女生们操到腿软吧～
 
-## 安装 / Install
-
-```bash
-adb install -r HypnoHeart.apk
-adb shell am start -n com.hypno.heart/.MainActivity
-```
-
-Full screen, screen kept awake; press **Back** to exit. Rendering pauses automatically in the background.
-
-*(A prebuilt APK is attached to the [Releases](../../releases) page — this repo intentionally does not commit build artifacts.)*
-
-## 预览是怎么来的 / About the preview
-
-`make_preview.py` is a NumPy re-implementation of the same shader math (including the same analytic AA), so the GIF above
-is generated offline at 50 frames and doubles as a cross-check of the GLSL. Regenerate with:
-
-```bash
-python make_preview.py
-```
-
-## License
+## 以上内容纯属虚构，本APP不存在任何真正意义上的心理暗示或者精神相关的功能，只存在演示装饰功能，前面的玩笑话请勿当真
 
 [MIT](LICENSE)
