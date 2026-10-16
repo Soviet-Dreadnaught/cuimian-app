@@ -1,0 +1,9 @@
+# 统一换行符，避免跨平台 diff 噪音
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+*.png binary
+*.gif binary
+*.jar binary

@@ -1,0 +1,19 @@
+# 构建产物（不入库，APK 走 Release 附件发布）
+build/
+*.apk
+*.idsig
+*.ap_
+*.dex
+*.class
+
+# 本地签名文件：绝对不要提交
+*.keystore
+*.jks
+
+# 编辑器 / 系统
+.idea/
+.gradle/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
